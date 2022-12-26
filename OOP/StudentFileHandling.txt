@@ -1,0 +1,162 @@
+#include <iostream>
+#include <fstream>
+#include <cstring>
+
+using namespace std;
+
+const int MAX = 20;
+
+class Student
+{
+private:
+    int roll;
+    char name[MAX];
+    int age;
+public:
+    void setRoll(int r){roll = (0<r&&r<1000)?r:1;}
+    int getRoll(){return roll;}
+
+    void setName(char n[]){strcpy(name, n);}
+    char *getName(){return name;}
+
+    void setAge(int a){age=(0<a&&a<100)?a:MAX;}
+    int getAge() {return age;}
+
+    void set(int r, char n[], int a)
+    {setRoll(r); setName(n); setAge(a);}
+    void show()
+    {cout<<"Roll no: "<<getRoll()<<" Name: "<<getName()<<" Age: "<<getAge()<<endl;}
+
+    void read()
+    {
+        char n[MAX];
+        int r, a;
+        cout<<"Enter roll: "; cin>>r;
+        cout<<"Enter name: ";cin>>n;
+        cout<<"Enter age: "; cin>>a;
+        set(r, n, a);
+    }
+};
+
+class Class
+{
+private:
+    char name[20];
+    int size;
+    Student* s;
+
+public:
+    Class(char n[], int sz)
+    {
+        setName(n);
+        setSize(sz);
+        s = new Student[size];
+    }
+    void setName(char n[]){strcpy(name, n);}
+    char *getName(){return name;}
+
+    void setSize(int sz){size=(0<sz&&sz<120)?sz:60;}
+    int getSize(){return size;}
+
+
+    void writeClassOnFile()
+    {
+        fstream fs;
+        char fileName[25];
+        strcpy(fileName,name); strcat(fileName, ".dat");
+
+        fs.open(fileName, ios::out);
+        if (fs.good() != 1)
+        {cout<<"File not open"<<endl; exit(1);}
+        fs.write((char *)s, sizeof(Student)*size);
+    }
+    void readClassFromFile()
+    {
+        fstream fs;
+        char fileName[25];
+        strcpy(fileName,name); strcat(fileName, ".dat");
+
+        fs.open(fileName, ios::in);
+        if (fs.good() != 1)
+        {cout<<"File not open"<<endl; exit(1);}
+        fs.read((char *)s, sizeof(Student)*size);
+    }
+
+    void readClassKB()
+    {
+        for (int i=0; i<getSize(); ++i)
+            s[i].read();
+        writeClassOnFile();
+    }
+
+    void showFullClass()
+    {
+        readClassFromFile();
+        for (int i=0; i<getSize(); ++i)
+            s[i].show();
+    }
+    void appendOneStudent()
+    {
+        fstream fs;
+        char fileName[25];
+        strcpy(fileName,name); strcat(fileName, ".dat");
+
+        fs.open(fileName, ios::app);
+        if (fs.good() != 1)
+        {cout<<"File not open"<<endl; exit(1);}
+
+        Student st;
+        st.read();
+        fs.write((char *)(&st), sizeof(Student));
+    }
+
+    //to search student with roll number roll
+    int search(int roll)
+    {
+        readClassFromFile();
+        for (int i=0; i<getSize(); ++i)
+            if (roll == s[i].getRoll())return i;//fount at index i
+        return -1; //not found
+    }
+    void showOneStudent(int roll)
+    {
+        int i = search(roll);
+        if (i==-1) cout<<"Student not found"<<endl;
+        else s[i].show();
+    }
+
+    ~Class(){delete[] s;}
+};
+
+int main()
+{
+    int n;
+    cout<<"Enter size of class: "; cin>>n;
+    Class c("mac", n);
+
+    do
+    {
+        cout<<"Your choice: "<<endl
+            <<"0: Read data from keyboard and write on file"<<endl
+            <<"1: Read data from file and display"<<endl
+            <<"2: Search one student data"<<endl
+            <<"3: Append one student data"<<endl
+            <<"9: Exit from the application"<<endl;
+
+        int ch; cin>>ch;
+        switch (ch)
+        {
+            case 0: c.readClassKB(); break;
+            case 1: c.showFullClass(); break;
+            case 2: cout<<"Enter roll number to search: ";
+                    int roll; cin>>roll; c.showOneStudent(roll); break;
+            case 3: c.appendOneStudent(); break;
+            case 9: "Bye"; break;
+            default: cout<<"Wrong choice"<<endl;
+        }
+    } while(ch != 9);
+
+    return 0;
+}
+
+
